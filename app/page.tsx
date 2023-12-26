@@ -1,57 +1,92 @@
-import DeployButton from '../components/DeployButton'
-import AuthButton from '../components/AuthButton'
-import { createClient } from '@/utils/supabase/server'
-import ConnectSupabaseSteps from '@/components/ConnectSupabaseSteps'
-import SignUpUserSteps from '@/components/SignUpUserSteps'
-import Header from '@/components/Header'
-import { cookies } from 'next/headers'
+
 
 export default async function Index() {
-  const cookieStore = cookies()
-
-  const canInitSupabaseClient = () => {
-    // This function is just for the interactive tutorial.
-    // Feel free to remove it once you have Supabase connected.
-    try {
-      createClient(cookieStore)
-      return true
-    } catch (e) {
-      return false
-    }
-  }
-
-  const isSupabaseConnected = canInitSupabaseClient()
 
   return (
-    <div className="flex-1 w-full flex flex-col gap-20 items-center">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-        <div className="w-full max-w-4xl flex justify-between items-center p-3 text-sm">
-          <DeployButton />
-          {isSupabaseConnected && <AuthButton />}
+    <div className="h-screen flex overflow-hidden bg-gray-100">
+        <div className="hidden md:flex md:flex-shrink-0">
+            <div className="flex flex-col w-64">
+                <div className="flex flex-col h-0 flex-1">
+                    <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                        <nav className="mt-5 flex-1 px-2 bg-gray-800 space-y-1">
+                            <div className="px-5 py-2">
+                                <label className="flex items-center">
+                                    <input type="checkbox" className="form-checkbox"/>
+                                    <span className="ml-2 text-white">Option 1</span>
+                                </label>
+                            </div>
+                            <div className="px-5 py-2">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-white">Guardados</h3>
+                                    <button
+                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                        +
+                                    </button>
+                                </div>
+                                <ul className="mt-3 text-white">
+                                    <li>File 1</li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
         </div>
-      </nav>
-
-      <div className="animate-in flex-1 flex flex-col gap-20 opacity-0 max-w-4xl px-3">
-        <Header />
-        <main className="flex-1 flex flex-col gap-6">
-          <h2 className="font-bold text-4xl mb-4">Next steps</h2>
-          {isSupabaseConnected ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-        </main>
-      </div>
-
-      <footer className="w-full border-t border-t-foreground/10 p-8 flex justify-center text-center text-xs">
-        <p>
-          Powered by{' '}
-          <a
-            href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-            target="_blank"
-            className="font-bold hover:underline"
-            rel="noreferrer"
-          >
-            Supabase
-          </a>
-        </p>
-      </footer>
+        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+            <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+                <button
+                    className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:bg-gray-100 focus:text-gray-600 md:hidden"
+                    aria-label="Open sidebar">
+                </button>
+            </div>
+            <main className="flex-1 relative overflow-y-auto focus:outline-none" tabindex="0">
+                <div className="py-6">
+                    <div className="px-4 sm:px-6 md:px-8">
+                        <div className="py-5">
+                            <div className="flex">
+                                <input type="text" className="form-input flex-grow mr-3" placeholder="Course code"/>
+                                <button className="px-4 py-2 bg-blue-500 text-white rounded">Agregar</button>
+                            </div>
+                        </div>
+                        <div className="py-5">
+                            <ul>
+                                <li>Course 1</li>
+                            </ul>
+                        </div>
+                        <div className="py-5">
+                            <table className="table-fixed">
+                                <thead>
+                                    <tr>
+                                        <th className="w-1/5">Mon</th>
+                                        <th className="w-1/5">Tue</th>
+                                        <th className="w-1/5">Wed</th>
+                                        <th className="w-1/5">Thu</th>
+                                        <th className="w-1/5">Fri</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>8:00</td>
+                                        <td>9:00</td>
+                                        <td>10:00</td>
+                                        <td>11:00</td>
+                                        <td>12:00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="py-5">
+                            <ul>
+                                <li>Current Course 1</li>
+                            </ul>
+                        </div>
+                        <div className="py-5">
+                            <button className="px-4 py-2 bg-blue-500 text-white rounded">Buscar OFGs</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
   )
 }

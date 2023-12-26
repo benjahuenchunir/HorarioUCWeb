@@ -1,15 +1,15 @@
-import { GeistSans } from 'geist/font/sans'
 import './globals.css'
+import { Inter } from "next/font/google";
+import { Metadata } from 'next';
+import { Navbar } from '@/components/nav/NavBar';
+import QueryProvider from '@/components/QueryProvider';
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000'
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: 'Next.js and Supabase Starter Kit',
-  description: 'The fastest way to build apps with Next.js and Supabase',
-}
+export const metadata: Metadata = {
+	title: "HorarioUC",
+	description: "Arma tu horario rapidamente",
+};
 
 export default function RootLayout({
   children,
@@ -17,11 +17,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={GeistSans.className}>
-      <body className="bg-background text-foreground">
-        <main className="min-h-screen flex flex-col items-center">
+    <html lang="en">
+			<body className={inter.className}>
+      <QueryProvider>
+        <main>
+          <Navbar/>
           {children}
         </main>
+        </QueryProvider>
       </body>
     </html>
   )
