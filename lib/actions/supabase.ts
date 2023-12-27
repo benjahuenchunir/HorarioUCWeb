@@ -1,7 +1,8 @@
 "use server";
-import { Database, Tables } from "@/types/supabase";
+import { Tables } from "@/types/supabase";
 import { createSupabaseServerClient } from "../supabase/server";
-import { error } from "console";
+import { QueryData } from "@supabase/supabase-js";
+import { mapToCourseModel } from "@/lib/utils/mappers";
 
 async function insertCourse(course: Tables<"cursos">) {
     const { id, ...courseWithoutId } = course;
@@ -74,10 +75,11 @@ export async function getCourseById(id: string) {
         .select("*, secciones(*)")
         .eq("sigla", id)
         .single();
-    
+
     if (error) {
         console.error('Error fetching product by id:', error.message);
         return null;
     }
-    return data;
+
+    return mapToCourseModel(data);
 }
