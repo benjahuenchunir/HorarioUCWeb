@@ -6,7 +6,6 @@ export function mapToCourseModel(data: CourseDTO): Course {
     const groupedSections: Record<string, GroupedSection> = data.secciones.reduce((acc: Record<string, GroupedSection>, sectionDto: Tables<"secciones">) => {
       const horario = JSON.stringify(sectionDto.horario);
       const section: Section = { ...sectionDto, horario: sectionDto.horario };
-
       if (!acc[horario]) {
         acc[horario] = { horario: sectionDto.horario, sections: [section] };
       } else {

@@ -104,12 +104,12 @@ class Scraper {
                 profesor: teacher,
                 campus,
                 en_ingles,
-                horario: JSON.stringify({
-                    SIGLA_CATEDRA: catedra,
-                    SIGLA_LAB: lab,
-                    SIGLA_AYUDANTIA: ayudantia,
-                    SIGLA_TALLER: taller,
-                }),
+                horario: {
+                    [SIGLA_CATEDRA]: catedra,
+                    [SIGLA_LAB]: lab,
+                    [SIGLA_AYUDANTIA]: ayudantia,
+                    [SIGLA_TALLER]: taller,
+                },
                 formato,
             };
             

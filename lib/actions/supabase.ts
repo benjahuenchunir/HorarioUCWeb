@@ -1,7 +1,6 @@
 "use server";
 import { Tables } from "@/types/supabase";
 import { createSupabaseServerClient } from "../supabase/server";
-import { QueryData } from "@supabase/supabase-js";
 import { mapToCourseModel } from "@/lib/utils/mappers";
 
 async function insertCourse(course: Tables<"cursos">) {

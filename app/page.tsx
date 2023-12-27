@@ -4,19 +4,7 @@ import { useState, useEffect } from 'react';
 import { getCourseBySigla } from '@/lib/actions';
 import { Course } from '@/types/model';
 import { generateCombinations } from '@/lib/utils';
-
-const defaultTopesFilter = {
-  cat_cat: false,
-  cat_tal: false,
-  cat_lab: false,
-  cat_ayu: true,
-  lab_tal: false,
-  lab_lab: false,
-  lab_ayu: true,
-  tal_ayu: true,
-  tal_tal: true,
-  ayu_ayu: true,
-};
+import { DEFAULT_TOPES_FILTER } from '@/lib/utils/constants';
 
 export default function Index() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -24,12 +12,12 @@ export default function Index() {
   const [sigla, setCourseId] = useState<string>('');
   const options = ["MAT1630", "MAT1620"]
   const [courses, setCourses] = useState<Course[]>([]);
-  const [topesFilter, setTopesFilter] = useState(defaultTopesFilter);
+  const [topesFilter, setTopesFilter] = useState(DEFAULT_TOPES_FILTER);
 
 
   useEffect(() => {
-    console.log(generateCombinations(courses));
-  }, [courses]);
+    console.log(generateCombinations(courses, topesFilter));
+  }, [courses, topesFilter]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -102,7 +90,7 @@ export default function Index() {
                 }[part])).join(' + ');
                 return (
                   <li key={attr}>
-                    <label style={{ color: defaultTopesFilter[attr] ? 'white' : 'red' }}>
+                    <label style={{ color: DEFAULT_TOPES_FILTER[attr] ? 'white' : 'red' }}>
                       <input
                         type="checkbox"
                         checked={isChecked}
