@@ -1,28 +1,7 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import { SIGLA_AYUDANTIA, SIGLA_CATEDRA, SIGLA_LAB, SIGLA_TALLER, STRING_TO_BOOL } from './constants';
-
-interface CourseDTO {
-    id: number;
-    sigla: string;
-    nombre: string;
-    permite_retiro: number;
-    aprob_especial: number;
-    area: string | null;
-    creditos: number;
-    descripcion: string;
-}
-
-interface SectionDTO {
-    id_curso: number;
-    seccion: number;
-    nrc: number;
-    profesor: string;
-    campus: string;
-    en_ingles: number;
-    horario: string;
-    formato: string;
-}
+import { Tables } from '@/types/supabase';
 
 class Scraper {
     async findCourseInfo(courseId: string): Promise<[CourseDTO, SectionDTO[]] | null> {
@@ -104,7 +83,7 @@ class Scraper {
                 const tooltip_dom = new JSDOM(ajax_response.data);
                 const tooltip = tooltip_dom.window.document.querySelector('div[style="height:116px;overflow:auto;"]');
     
-                const course: CourseDTO = {
+                const course: Tables<"cursos"> = {
                     id: -1,
                     sigla,
                     nombre: name,
@@ -118,7 +97,7 @@ class Scraper {
                 courses[sigla] = [course, []];
             }
     
-            const section: SectionDTO = {
+            const section: Tables<"secciones"> = {
                 id_curso: -1,
                 seccion: sectionNumber,
                 nrc,

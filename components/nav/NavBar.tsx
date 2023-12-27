@@ -3,14 +3,16 @@ import Link from "next/link";
 import LoginForm from "./LoginForm";
 import { useUser } from "@/lib/hook";
 import Profile from "./Profile";
+import { ModeToggle } from "../ui/theme-button";
 
 export function Navbar() {
     return (
-        <nav className="w-full justify-between items-center flex p-5 xl:p-0">
-            <div className="space-x-4 flex">
-                <Link href="/">Horario</Link>
+        <nav className="w-full justify-between items- flex p-5">
+            <Link href="/">Horario</Link>
+            <div className="ml-auto flex space-x-3">
+                <RenderProfile />
+                <ModeToggle/>
             </div>
-            <RenderProfile />
         </nav>
     );
 }

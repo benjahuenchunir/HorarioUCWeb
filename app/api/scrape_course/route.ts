@@ -6,13 +6,11 @@ export async function POST(request: Request) {
     console.log(courseId);
 
     if (typeof courseId !== 'string') {
-        return NextResponse.json({error: 'Invalid courseId'}, {status: 400});
+        return NextResponse.json({data: null}, {status: 400});
     }
 
     const scraper = new Scraper();
     const courseInfo = await scraper.findCourseInfo(courseId);
-    console.log("--------------------------------------")
-    console.log(courseInfo);
-    console.log("--------------------------------------")
+    console.log("The course info is: ", courseInfo)
     return NextResponse.json({data: courseInfo}, {status: 200});
 }

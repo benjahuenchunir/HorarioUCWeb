@@ -1,14 +1,19 @@
 import './globals.css'
-import { Inter } from "next/font/google";
+import { Inter as FontSans } from "next/font/google";
 import { Metadata } from 'next';
 import { Navbar } from '@/components/nav/NavBar';
 import QueryProvider from '@/components/QueryProvider';
+import { cn } from '@/lib/utils';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
-const inter = Inter({ subsets: ["latin"] });
+export const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
 
 export const metadata: Metadata = {
-	title: "HorarioUC",
-	description: "Arma tu horario rapidamente",
+  title: "HorarioUC",
+  description: "Arma tu horario rapidamente",
 };
 
 export default function RootLayout({
@@ -17,14 +22,24 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-			<body className={inter.className}>
-      <QueryProvider>
-        <main>
-          <Navbar/>
-          {children}
-        </main>
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <Navbar />
+            {children}
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
