@@ -7,7 +7,7 @@ import { ModeToggle } from "../ui/theme-button";
 
 export function Navbar() {
     return (
-        <nav className="w-full justify-between items- flex p-5">
+        <nav className="w-full justify-between items- flex p-5 shadow">
             <Link href="/">Horario</Link>
             <div className="ml-auto flex space-x-3">
                 <RenderProfile />
