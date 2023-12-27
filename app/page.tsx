@@ -1,27 +1,52 @@
 "use client"
 import ScheduleTable from '@/components/ScheduleTable';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { getCourseBySigla } from '@/lib/actions';
 import { Course } from '@/types/model';
 import { generateCombinations } from '@/lib/utils';
 import { DEFAULT_TOPES_FILTER } from '@/lib/utils/constants';
 
 export default function Index() {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [sigla, setCourseId] = useState<string>('');
   const options = ["MAT1630", "MAT1620"]
   const [courses, setCourses] = useState<Course[]>([]);
   const [topesFilter, setTopesFilter] = useState(DEFAULT_TOPES_FILTER);
+  const [currentCombinationIndex, setCurrentCombinationIndex] = useState(0);
+  const [combinations, setCombinations] = useState([]);
+  const scheduleTableRef = useRef();
 
+
+  useEffect(() => {
+    const newCombinations = generateCombinations(courses, topesFilter);
+    setCombinations(newCombinations);
+    if (currentCombinationIndex == 0 && newCombinations.length > 0) {
+      scheduleTableRef.current.updateSchedule(newCombinations[0]);
+    }
+    setCurrentCombinationIndex(0);
+  }, [courses, topesFilter]);
+
+  useEffect(() => {
+    if (combinations.length > 0) {
+      scheduleTableRef.current.updateSchedule(combinations[currentCombinationIndex]);
+    }
+  }, [currentCombinationIndex]);
+
+  const increaseCombinationIndex = () => {
+    if (currentCombinationIndex < combinations.length - 1) {
+      setCurrentCombinationIndex(currentCombinationIndex + 1);
+    }
+  };
+
+  const decreaseCombinationIndex = () => {
+    if (currentCombinationIndex > 0) {
+      setCurrentCombinationIndex(currentCombinationIndex - 1);
+    }
+  };
 
   useEffect(() => {
     console.log(generateCombinations(courses, topesFilter));
   }, [courses, topesFilter]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
 
   const fetchData = async () => {
     console.log("courses", courses)
@@ -106,8 +131,7 @@ export default function Index() {
         </div>
       </div>
       <div className="container mx-auto mt-12">
-
-        <div className={`h-screen flex justify-center items-center ${isSidebarOpen ? 'ml-64 w-[calc(100%-64)]' : 'w-full'}`}>
+        <div className={`h-screen flex justify-center items-center`}>
           <div>
             <input list="courses" onChange={handleInputChange} value={sigla} />
             <button onClick={fetchData}>Fetch Course</button>
@@ -116,7 +140,17 @@ export default function Index() {
                 <option key={index} value={option} />
               ))}
             </datalist>
-            <ScheduleTable />
+            <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
+                ? `0`
+                : combinations.length}</p>
+            <button onClick={decreaseCombinationIndex}>Previous</button>
+            <span>
+              {combinations.length == 1 && combinations[0]
+                ? 'No hay combinaciones'
+                : `Combinacion actual: ${currentCombinationIndex + 1}`}
+            </span>
+            <button onClick={increaseCombinationIndex}>Next</button>
+            <ScheduleTable ref={scheduleTableRef} />
           </div>
         </div>
       </div>

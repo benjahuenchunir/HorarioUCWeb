@@ -7,7 +7,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function generateCombinations(courses: Course[], topesFilter: typeof DEFAULT_TOPES_FILTER): GroupedSection[][] {  if (courses.length === 0) {
+export function generateCombinations(courses: Course[], topesFilter: typeof DEFAULT_TOPES_FILTER): GroupedSection[][] {  
+  if (courses.length === 0) {
     return [[]];
   }
 

@@ -1,4 +1,5 @@
 export interface GroupedSection {
+    sigla: string;
     horario: JSON;
     sections: Section[];
 }
