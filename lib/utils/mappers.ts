@@ -1,5 +1,5 @@
 import { CourseDTO } from "@/types/dto";
-import { Course, GroupedSection } from "@/types/model";
+import { Course, GroupedSection, Section } from "@/types/model";
 import { Tables } from "@/types/supabase";
 
 export function mapToCourseModel(data: CourseDTO): Course {

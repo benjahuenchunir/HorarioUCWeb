@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { useTransition } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import createSupabaseBrowerClient from "@/lib/supabase/client";
 
 const FormSchema = z.object({
@@ -114,7 +114,7 @@ export default function SignInForm() {
 					/>
 				</Button>
 			</form>
-			<Button	onClick={handleOAuthLogin} className="w-full flex gap-2">Ingresar con google</Button>		
+			<Button onClick={handleOAuthLogin} className="w-full flex gap-2">Ingresar con google</Button>
 		</Form>
 	);
 }

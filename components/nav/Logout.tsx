@@ -3,7 +3,7 @@ import React, { useTransition } from "react";
 import { Button } from "../ui/button";
 import { LockOpen1Icon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import createSupabaseBrowerClient from "@/lib/supabase/client";
 

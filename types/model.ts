@@ -13,7 +13,6 @@ export interface Course{
     permite_retiro: boolean;
     sigla: string;
     secciones: GroupedSection[];
-
 }
 
 export interface Section{
