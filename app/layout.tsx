@@ -5,6 +5,7 @@ import { Navbar } from '@/components/nav/NavBar';
 import QueryProvider from '@/components/QueryProvider';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from '@/components/ui/toaster';
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -31,13 +32,13 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
           <QueryProvider>
             <Navbar />
-            {children}
+            {children} <Toaster />
           </QueryProvider>
         </ThemeProvider>
       </body>

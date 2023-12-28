@@ -1,5 +1,5 @@
 "use client"
-import {ScheduleTable} from '@/components/ScheduleTable';
+import { ScheduleTable } from '@/components/ScheduleTable';
 import { useState, useEffect, useRef, use } from 'react';
 import { getCourseBySigla } from '@/lib/actions';
 import { Course } from '@/types/model';
@@ -9,6 +9,8 @@ import { CourseList } from '@/components/CourseList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getCourseSiglas } from '@/lib/actions/supabase';
+import { SectionInfoList } from '@/components/SectionInfoList';
+import { toast } from '@/components/ui/use-toast';
 
 export default function Index() {
   const [suggestions, setSuggestions] = useState([]);
@@ -29,7 +31,7 @@ export default function Index() {
 
     fetchCourseSiglas();
   }, []);
-  
+
   useEffect(() => {
     const newCombinations = generateCombinations(courses, topesFilter);
     setCombinations(newCombinations);
@@ -54,23 +56,31 @@ export default function Index() {
 
   const fetchData = async () => {
     console.log("courses", courses)
-    if (courses.find(course => course.sigla === sigla)) {
-      console.error("Course already added");
+    if (courses.find(course => course.sigla === sigla.toUpperCase())) {
+      toast({
+        variant: "destructive",
+        title: "El curso ya esta en la lista",
+      });
       return;
     }
-    const course = await getCourseBySigla(sigla);
+    const course = await getCourseBySigla(sigla.toUpperCase());
     if (course) {
       setCourses([...courses, course])
+      setCourseId('');
+      handleInputChange({ target: { value: '' } });
       console.log("courses", courses)
     } else {
-      console.error("Course not found");
+      toast({
+        variant: "destructive",
+        title: "No se encontró el curso",
+      });
     }
   }
 
   const handleInputChange = (event) => {
     const value = event.target.value;
     setCourseId(value);
-  
+
     setFilteredSuggestions(suggestions.filter((option) => option.includes(value)));
   };
 
@@ -94,7 +104,7 @@ export default function Index() {
       >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Dashboard</h2>
+            <h2 className="text-xl font-bold text-white">Topes permitidos</h2>
             <button onClick={() => setOpen(!open)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -138,35 +148,41 @@ export default function Index() {
           </div>
         </div>
       </div>
-      <div className="container mx-auto mt-12">
-        <div className={`h-screen flex justify-center items-center`}>
-          
-        <div>
-  <div className="flex justify-normal space-x-3">
+      <div className="py-10 px-10">
+        <div className={`h-screen flex justify-center`}>
+          <div>
+            <div className="flex justify-normal space-x-3">
 
-  <Input list="courses" onChange={handleInputChange} value={sigla} type="text" placeholder="Sigla" />
-  <Button onClick={fetchData}>Agregar</Button>
-  </div>
-  <datalist id="courses">
-  {filteredSuggestions.map((option, index) => (
-    <option key={index} value={option} />
-  ))}
-</datalist>
-  <CourseList courses={courses} onDelete={deleteCourse} combinations={combinations} currentCombinationIndex={currentCombinationIndex} />
-  <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
-      ? `0`
-      : combinations.length}</p>
-  <div className="flex justify-between py-5">
-    <Button onClick={decreaseCombinationIndex} variant="outline">Anterior</Button>
-    <span>
-      {combinations.length == 1 && combinations[0]
-        ? 'No hay combinaciones'
-        : `Combinacion actual: ${currentCombinationIndex + 1}`}
-    </span>
-    <Button onClick={increaseCombinationIndex} variant="outline" >Siguiente</Button>
-  </div>
-  <ScheduleTable currentCombination={combinations[currentCombinationIndex]} />
-</div>
+              <Input list="courses" onChange={handleInputChange} value={sigla} type="text" placeholder="Sigla" />
+              <Button onClick={fetchData}>Agregar</Button>
+            </div>
+            <datalist id="courses">
+              {filteredSuggestions.map((option, index) => (
+                <option key={index} value={option} />
+              ))}
+            </datalist>
+            <CourseList courses={courses} onDelete={deleteCourse} combinations={combinations} currentCombinationIndex={currentCombinationIndex} />
+            <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
+              ? `0`
+              : combinations.length}</p>
+            <div className="flex justify-between py-5">
+              <Button onClick={decreaseCombinationIndex} variant="outline">Anterior</Button>
+              <span>
+                {combinations.length == 1 && combinations[0]
+                  ? 'No hay combinaciones'
+                  : `Combinacion actual: ${currentCombinationIndex + 1}`}
+              </span>
+              <Button onClick={increaseCombinationIndex} variant="outline" >Siguiente</Button>
+            </div>
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <ScheduleTable currentCombination={combinations[currentCombinationIndex]} />
+                </div>
+                <div className="flex-1">
+                  <SectionInfoList groupedSections={combinations[currentCombinationIndex]} />
+                </div>
+              </div>
+          </div>
         </div>
       </div>
     </div>
