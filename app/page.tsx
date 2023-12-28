@@ -1,10 +1,13 @@
 "use client"
-import ScheduleTable from '@/components/ScheduleTable';
+import {ScheduleTable} from '@/components/ScheduleTable';
 import { useState, useEffect, useRef, use } from 'react';
 import { getCourseBySigla } from '@/lib/actions';
 import { Course } from '@/types/model';
 import { generateCombinations } from '@/lib/utils';
 import { DEFAULT_TOPES_FILTER } from '@/lib/utils/constants';
+import { CourseList } from '@/components/CourseList';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function Index() {
   const [suggestions, setSuggestions] = useState([]);
@@ -14,23 +17,12 @@ export default function Index() {
   const [topesFilter, setTopesFilter] = useState(DEFAULT_TOPES_FILTER);
   const [currentCombinationIndex, setCurrentCombinationIndex] = useState(0);
   const [combinations, setCombinations] = useState([]);
-  const scheduleTableRef = useRef();
-
 
   useEffect(() => {
     const newCombinations = generateCombinations(courses, topesFilter);
     setCombinations(newCombinations);
-    if (currentCombinationIndex == 0 && newCombinations.length > 0) {
-      scheduleTableRef.current.updateSchedule(newCombinations[0]);
-    }
     setCurrentCombinationIndex(0);
   }, [courses, topesFilter]);
-
-  useEffect(() => {
-    if (combinations.length > 0) {
-      scheduleTableRef.current.updateSchedule(combinations[currentCombinationIndex]);
-    }
-  }, [currentCombinationIndex]);
 
   const increaseCombinationIndex = () => {
     if (currentCombinationIndex < combinations.length - 1) {
@@ -75,6 +67,10 @@ export default function Index() {
       ...prevFilter,
       [attr]: !prevFilter[attr],
     }));
+  };
+
+  const deleteCourse = (courseToDelete) => {
+    setCourses(courses.filter(course => course !== courseToDelete));
   };
 
   const [open, setOpen] = useState(false)
@@ -132,26 +128,33 @@ export default function Index() {
       </div>
       <div className="container mx-auto mt-12">
         <div className={`h-screen flex justify-center items-center`}>
-          <div>
-            <input list="courses" onChange={handleInputChange} value={sigla} />
-            <button onClick={fetchData}>Fetch Course</button>
-            <datalist id="courses">
-              {options.map((option, index) => (
-                <option key={index} value={option} />
-              ))}
-            </datalist>
-            <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
-                ? `0`
-                : combinations.length}</p>
-            <button onClick={decreaseCombinationIndex}>Previous</button>
-            <span>
-              {combinations.length == 1 && combinations[0]
-                ? 'No hay combinaciones'
-                : `Combinacion actual: ${currentCombinationIndex + 1}`}
-            </span>
-            <button onClick={increaseCombinationIndex}>Next</button>
-            <ScheduleTable ref={scheduleTableRef} />
-          </div>
+          
+        <div>
+  <div className="flex justify-normal space-x-3">
+
+  <Input list="courses" onChange={handleInputChange} value={sigla} type="text" placeholder="Sigla" />
+  <Button onClick={fetchData}>Agregar</Button>
+  </div>
+  <datalist id="courses">
+    {options.map((option, index) => (
+      <option key={index} value={option} />
+    ))}
+  </datalist>
+  <CourseList courses={courses} onDelete={deleteCourse} combinations={combinations} currentCombinationIndex={currentCombinationIndex} />
+  <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
+      ? `0`
+      : combinations.length}</p>
+  <div className="flex justify-between py-5">
+    <Button onClick={decreaseCombinationIndex} variant="outline">Anterior</Button>
+    <span>
+      {combinations.length == 1 && combinations[0]
+        ? 'No hay combinaciones'
+        : `Combinacion actual: ${currentCombinationIndex + 1}`}
+    </span>
+    <Button onClick={increaseCombinationIndex} variant="outline" >Siguiente</Button>
+  </div>
+  <ScheduleTable currentCombination={combinations[currentCombinationIndex]} />
+</div>
         </div>
       </div>
     </div>

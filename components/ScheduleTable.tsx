@@ -1,13 +1,13 @@
 import { GroupedSection } from '@/types/model';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const ScheduleTable = forwardRef((props, ref) => {
+export function ScheduleTable ({currentCombination} : {currentCombination: GroupedSection[]}) {
   const initialSchedule = Array(9).fill().map(() => Array(5).fill(''));
   const [schedule, setSchedule] = useState(initialSchedule);
 
-  useImperativeHandle(ref, () => ({
-    updateSchedule,
-  }));
+  useEffect(() => {
+    updateSchedule(currentCombination);
+  }, [currentCombination]);
 
   const clearSchedule = () => {
     setSchedule(initialSchedule);
@@ -38,7 +38,11 @@ const ScheduleTable = forwardRef((props, ref) => {
   
   const updateSchedule = (groupedSections: GroupedSection[]) => {
     clearSchedule();
-  
+    
+    if (!groupedSections) {
+      return;
+    }
+
     groupedSections.forEach(groupedSection => {
       console.log(groupedSection);
       addCourse(groupedSection.horario, groupedSection.sigla, groupedSection.sections.map(section => section.seccion).join(','));
@@ -64,29 +68,19 @@ const ScheduleTable = forwardRef((props, ref) => {
   const timesOfDay = ["8:20", "9:40", "11:00", "12:20", "Almuerzo", "14:50", "16:10", "17:30", "18:50",];
 
   return (
-    <table className="border-collapse border-2 border-gray-500 w-full table-fixed">
-      <thead>
-        <tr>
-          <th className="border-2 border-gray-500 w-1/6"></th>
-          {daysOfWeek.map((day, index) => (
-            <th key={index} className="border-2 border-gray-500 w-1/6">{day}</th>
+  <table className="border-collapse border-2 border-gray-500 w-full table-fixed">
+    <tbody>
+      {timesOfDay.map((time, timeIndex) => (
+        <tr key={timeIndex} className={timeIndex === 4 ? 'bg-gray-300' : ''}>
+          <td className="border-2 border-gray-500 w-1/6">{time}</td>
+          {daysOfWeek.map((day, dayIndex) => (
+            <td key={dayIndex} style={{ backgroundColor: timeIndex === 4 ? '#D3D3D3' : courseTypeToColor(schedule[timeIndex][dayIndex][0]?.type) }} className={`border-2 border-gray-500 w-1/6`}>
+              {Array.isArray(schedule[timeIndex][dayIndex]) ? schedule[timeIndex][dayIndex].map((course, i) => <p key={i}>{course.label}</p>) : schedule[timeIndex][dayIndex]}
+            </td>
           ))}
         </tr>
-      </thead>
-      <tbody>
-        {timesOfDay.map((time, timeIndex) => (
-          <tr key={timeIndex} className={time === 'Almuerzo' ? 'bg-gray-200' : ''}>
-            <td className="border-2 border-gray-500 w-1/6">{time}</td>
-            {daysOfWeek.map((day, dayIndex) => (
-              <td key={dayIndex} style={{ backgroundColor: courseTypeToColor(schedule[timeIndex][dayIndex][0]?.type) }} className="border-2 border-gray-500 w-1/6">
-                {Array.isArray(schedule[timeIndex][dayIndex]) ? schedule[timeIndex][dayIndex].map((course, i) => <p key={i}>{course.label}</p>) : schedule[timeIndex][dayIndex]}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-});
-
-export default ScheduleTable;
+      ))}
+    </tbody>
+  </table>
+);
+}
