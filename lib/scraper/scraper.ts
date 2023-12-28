@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-import { SIGLA_AYUDANTIA, SIGLA_CATEDRA, SIGLA_LAB, SIGLA_TALLER, STRING_TO_BOOL } from './constants';
+import { STRING_TO_BOOL, TIPOS_CLASES } from '@/lib/utils/constants';
 import { Tables } from '@/types/supabase';
 
 class Scraper {
@@ -35,43 +35,37 @@ class Scraper {
             const campus = cells[11].textContent?.trim() || '';
             const schedules = cells[16].querySelectorAll('tr');
 
-            const catedra: Record<string, number[]> = {};
-            const ayudantia: Record<string, number[]> = {};
-            const lab: Record<string, number[]> = {};
-            const taller: Record<string, number[]> = {};
+            const schedulesObj: Record<string, Record<string, number[]>> = {};
+
+            TIPOS_CLASES.forEach((tipo) => {
+            schedulesObj[tipo] = {};
+            });
 
             schedules.forEach((schedule) => {
                 const scheduleCells = schedule.querySelectorAll('td');
                 const tipo = scheduleCells[1].textContent?.trim() || '';
                 const horario = scheduleCells[0].textContent?.trim() || '';
                 const [dias, modulos_] = horario.split(':');
-
+              
                 if (dias === '' || modulos_ === '') {
+                  return;
+                }
+
+                if (!schedulesObj[tipo]) {
+                    console.log('Tipo de clase no reconocido:', tipo);
                     return;
                 }
 
                 dias.split('-').forEach((dia) => {
                     const modulos = modulos_.split(',').map(Number);
 
-                    switch (tipo) {
-                        case SIGLA_CATEDRA:
-                            catedra[dia] = (catedra[dia] || []).concat(modulos);
-                            break;
-                        case SIGLA_LAB:
-                            lab[dia] = (lab[dia] || []).concat(modulos);
-                            break;
-                        case SIGLA_AYUDANTIA:
-                            ayudantia[dia] = (ayudantia[dia] || []).concat(modulos);
-                            break;
-                        case SIGLA_TALLER:
-                            taller[dia] = (taller[dia] || []).concat(modulos);
-                            break;
-                        default:
-                            console.log(sigla);
-                            console.log(tipo);
+                    if (!schedulesObj[tipo][dia]) {
+                        schedulesObj[tipo][dia] = [];
                     }
+
+                    schedulesObj[tipo][dia] = modulos;
                 });
-            });
+              });
 
             if (!courses[sigla]) {
                 const permite_retiro = STRING_TO_BOOL[cells[2].textContent?.trim() || ''];
@@ -104,12 +98,7 @@ class Scraper {
                 profesor: teacher,
                 campus,
                 en_ingles,
-                horario: {
-                    [SIGLA_CATEDRA]: catedra,
-                    [SIGLA_LAB]: lab,
-                    [SIGLA_AYUDANTIA]: ayudantia,
-                    [SIGLA_TALLER]: taller,
-                },
+                horario: schedulesObj,
                 formato,
             };
             

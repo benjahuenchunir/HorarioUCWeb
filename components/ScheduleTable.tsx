@@ -1,8 +1,9 @@
 import { GroupedSection } from '@/types/model';
 import { useEffect, useState } from 'react';
+import { COURSE_COLORS } from '@/lib/utils/constants';
 
 export function ScheduleTable ({currentCombination} : {currentCombination: GroupedSection[]}) {
-  const initialSchedule = Array(9).fill().map(() => Array(5).fill(''));
+  const initialSchedule = Array(10).fill().map(() => Array(6).fill(''));
   const [schedule, setSchedule] = useState(initialSchedule);
 
   useEffect(() => {
@@ -50,22 +51,16 @@ export function ScheduleTable ({currentCombination} : {currentCombination: Group
   };
 
   const dayToIndex = (day) => {
-    const daysOfWeek = ['L', 'M', 'W', 'J', 'V'];
+    const daysOfWeek = ['L', 'M', 'W', 'J', 'V', 'S'];
     return daysOfWeek.indexOf(day);
   };
 
   const courseTypeToColor = (courseType) => {
-    const colors = {
-      'CLAS': '#FBC575',
-      'LAB': '#B3D4F5',
-      'AYU': '#99CC99',
-      'TAL': '#C7C2F8',
-    };
-    return colors[courseType] || 'white';
+    return COURSE_COLORS[courseType] || 'white';
   };
 
-  const daysOfWeek = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
-  const timesOfDay = ["8:20", "9:40", "11:00", "12:20", "Almuerzo", "14:50", "16:10", "17:30", "18:50",];
+  const daysOfWeek = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+  const timesOfDay = ["8:20", "9:40", "11:00", "12:20", "Almuerzo", "14:50", "16:10", "17:30", "18:50", "20:10"];
 
   return (
   <table className="border-collapse border-2 border-gray-500 w-full table-fixed">
