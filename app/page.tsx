@@ -43,7 +43,15 @@ export default function Index() {
 
   useEffect(() => {
     const fetchCourseSiglas = async () => {
-      const courseSiglas = await getCourseSiglas();
+      let courseSiglas = localStorage.getItem('courseSiglas');
+      if (!courseSiglas) {
+        console.log('Fetching course siglas');
+        courseSiglas = await getCourseSiglas();
+        localStorage.setItem('courseSiglas', JSON.stringify(courseSiglas));
+      } else {
+        console.log('Using cached course siglas');
+        courseSiglas = JSON.parse(courseSiglas);
+      }
       setSuggestions(courseSiglas);
       setFilteredSuggestions(courseSiglas);
     };
