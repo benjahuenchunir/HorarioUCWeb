@@ -52,18 +52,23 @@ export async function insertCourseAndSections(course: Tables<"cursos">, sections
     }
   }
 
-export async function getAllCourses() {
+export async function getCourseSiglas() {
 	const supabase = await createSupabaseServerClient();
 	const { data, error } = await supabase
 		.from("cursos")
-		.select("*, secciones(*)")
+		.select("sigla")
 		.order("sigla");
 
 	if (error) {
 		console.error('Error fetching product by id:', error.message);
 		return null;
 	}
-	return data;
+
+    const siglas = data.map(item => item.sigla);
+
+  console.log(siglas);
+
+  return siglas;
 }
 
 export async function getCourseById(id: string) {

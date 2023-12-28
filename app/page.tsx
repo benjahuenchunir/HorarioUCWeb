@@ -8,16 +8,28 @@ import { DEFAULT_TOPES_FILTER } from '@/lib/utils/constants';
 import { CourseList } from '@/components/CourseList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getCourseSiglas } from '@/lib/actions/supabase';
 
 export default function Index() {
   const [suggestions, setSuggestions] = useState([]);
   const [sigla, setCourseId] = useState<string>('');
-  const options = ["MAT1630", "MAT1620"]
   const [courses, setCourses] = useState<Course[]>([]);
   const [topesFilter, setTopesFilter] = useState(DEFAULT_TOPES_FILTER);
   const [currentCombinationIndex, setCurrentCombinationIndex] = useState(0);
   const [combinations, setCombinations] = useState([]);
 
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+
+  useEffect(() => {
+    const fetchCourseSiglas = async () => {
+      const courseSiglas = await getCourseSiglas();
+      setSuggestions(courseSiglas);
+      setFilteredSuggestions(courseSiglas);
+    };
+
+    fetchCourseSiglas();
+  }, []);
+  
   useEffect(() => {
     const newCombinations = generateCombinations(courses, topesFilter);
     setCombinations(newCombinations);
@@ -58,8 +70,8 @@ export default function Index() {
   const handleInputChange = (event) => {
     const value = event.target.value;
     setCourseId(value);
-
-    setSuggestions(options.filter((option) => option.includes(value)));
+  
+    setFilteredSuggestions(suggestions.filter((option) => option.includes(value)));
   };
 
   const handleFilterChange = (attr) => {
@@ -136,10 +148,10 @@ export default function Index() {
   <Button onClick={fetchData}>Agregar</Button>
   </div>
   <datalist id="courses">
-    {options.map((option, index) => (
-      <option key={index} value={option} />
-    ))}
-  </datalist>
+  {filteredSuggestions.map((option, index) => (
+    <option key={index} value={option} />
+  ))}
+</datalist>
   <CourseList courses={courses} onDelete={deleteCourse} combinations={combinations} currentCombinationIndex={currentCombinationIndex} />
   <p>Cantidad de combinaciones: {combinations.length == 1 && combinations[0]
       ? `0`
