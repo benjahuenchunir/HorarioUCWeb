@@ -23,6 +23,25 @@ export default function Index() {
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
 
   useEffect(() => {
+    const savedCourses = localStorage.getItem('courses');
+    if (savedCourses) {
+      setCourses(JSON.parse(savedCourses));
+    }
+  }, []);
+  
+  const initialRender = useRef(true);
+
+  useEffect(() => {
+    // Skip saving on initial render
+    if (initialRender.current) {
+      initialRender.current = false;
+    } else {
+      // Save courses to localStorage whenever they change
+      localStorage.setItem('courses', JSON.stringify(courses));
+    }
+  }, [courses]);
+
+  useEffect(() => {
     const fetchCourseSiglas = async () => {
       const courseSiglas = await getCourseSiglas();
       setSuggestions(courseSiglas);
