@@ -69,8 +69,12 @@ export function ScheduleTable ({currentCombination} : {currentCombination: Group
         <tr key={timeIndex} className={timeIndex === 4 ? 'bg-gray-300' : ''}>
           <td className="border-2 border-gray-500 w-1/6">{time}</td>
           {daysOfWeek.map((day, dayIndex) => (
-            <td key={dayIndex} style={{ backgroundColor: timeIndex === 4 ? '#D3D3D3' : courseTypeToColor(schedule[timeIndex][dayIndex][0]?.type) }} className={`border-2 border-gray-500 w-1/6`}>
-              {Array.isArray(schedule[timeIndex][dayIndex]) ? schedule[timeIndex][dayIndex].map((course, i) => <p key={i}>{course.label}</p>) : schedule[timeIndex][dayIndex]}
+            <td key={dayIndex} className={`border-2 border-gray-500 w-1/6 h-full`}>
+              {Array.isArray(schedule[timeIndex][dayIndex]) ? schedule[timeIndex][dayIndex].map((course, i) => (
+                <p key={i} style={{ backgroundColor: courseTypeToColor(course.type), padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: `${100 / schedule[timeIndex][dayIndex].length}%`, boxSizing: 'border-box' }}>
+                  {course.label}
+                </p>
+              )) : schedule[timeIndex][dayIndex]}
             </td>
           ))}
         </tr>
