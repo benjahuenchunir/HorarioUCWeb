@@ -104,3 +104,15 @@ declare interface Horario {
     D?: number[];
   };
 }
+
+interface SectionWithCurso {
+  campus: string;
+  en_ingles: boolean;
+  formato: string;
+  horario: Horario;
+  id_curso: number;
+  nrcs: number[];  // To store multiple section numbers
+  profesor: string;
+  secciones: number[];
+  curso: Curso;  // Reference to the original curso
+}
