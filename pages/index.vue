@@ -45,9 +45,39 @@
 </template>
 <script lang="ts">
 
-function validSchedule(sections: Seccion[]): boolean {
-  // Implement the logic to check if the combination of sections is valid
-  return true; // Placeholder, replace with actual validation logic
+function extractClasModules(horario: Horario): Set<string> {
+  const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  const modules = new Set<string>();
+
+  if (horario.CLAS) {
+    for (const day of days) {
+      if (horario.CLAS[day]) {
+        for (const module of horario.CLAS[day]!) {
+          modules.add(`${day}${module}`);
+        }
+      }
+    }
+  }
+
+  return modules;
+}
+
+function validSchedule(sections: SectionWithCurso[]): boolean {
+  const moduleSet = new Set<string>();
+
+  for (const section of sections) {
+    const clasModules = extractClasModules(section.horario);
+
+    for (const module of clasModules) {
+      if (moduleSet.has(module)) {
+        console.log('Overlapping modules:', module);
+        return false;
+      }
+      moduleSet.add(module);
+    }
+  }
+
+  return true;
 }
 
 function calculateCombinations(cursos: Curso[]): SectionWithCurso[][] {
