@@ -12,6 +12,12 @@
         <div class="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow">
           <p class="font-semibold text-lg text-gray-700"> {{ course.sigla }} </p>
           <p class="text-sm text-gray-600"> {{ course.secciones.length }} secciones</p>
+          <select v-model="selectedSections[course.sigla]" @change="resetCombinations">
+            <option value="">Cualquiera</option>
+            <option v-for="seccion in course.secciones" :key="seccion.seccion" :value="seccion.seccion">
+              {{ seccion.seccion }}
+            </option>
+          </select>
           <button @click="removeCourse(course)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
             Eliminar
           </button>
@@ -100,8 +106,8 @@ function validSchedule(sections: SectionWithCurso[]): boolean {
   return true;
 }
 
-function calculateCombinations(cursos: Curso[]): SectionWithCurso[][] {
-  const combinedSections = combineSections(cursos);
+function calculateCombinations(cursos: Curso[], selectedSections: { [key: string]: number | string }): SectionWithCurso[][] {
+  const combinedSections = combineSections(cursos, selectedSections);
   const cursoIds = new Set(cursos.map(curso => curso.id));
   const result: SectionWithCurso[][] = [];
 
@@ -127,13 +133,30 @@ function calculateCombinations(cursos: Curso[]): SectionWithCurso[][] {
   return result;
 }
 
-function combineSections(cursos: Curso[]): SectionWithCurso[] {
+function combineSections(cursos: Curso[], selectedSections: { [key: string]: number | string }): SectionWithCurso[] {
   const combinedSections: SectionWithCurso[] = [];
 
   for (const curso of cursos) {
     const horarioMap: Map<string, SectionWithCurso> = new Map();
 
-    for (const seccion of curso.secciones) {
+    // Filter sections if selectedNrcs is provided and not empty
+    const hasSelectedSections = selectedSections && selectedSections[curso.sigla] !== '';
+
+      // Find the selected section for the current course, if any
+      const selectedSection = curso.secciones.find(seccion => 
+        selectedSections && selectedSections[curso.sigla] === seccion.seccion
+      );
+
+      // Determine sections to process based on whether a section is selected
+      // and if it shares the same schedule as the selected section
+      const sectionsToProcess = hasSelectedSections && selectedSection
+        ? curso.secciones.filter(seccion => 
+            seccion.seccion === selectedSections[curso.sigla] || 
+            JSON.stringify(seccion.horario) === JSON.stringify(selectedSection.horario)
+          )
+        : curso.secciones;
+
+    for (const seccion of sectionsToProcess) {
       const horarioKey = JSON.stringify(seccion.horario);
 
       if (!horarioMap.has(horarioKey)) {
@@ -191,6 +214,7 @@ export default {
       courses: [] as Curso[],
       combinations: [] as SectionWithCurso[][],
       gridCells: {} as { [key: string]: { text: string, color: string } },
+      selectedSections: {} as { [key: string]: number | string },
     }
   },
   methods: {
@@ -223,6 +247,9 @@ export default {
     },
     fetchCursoData() {
       const sigla = this.searchQuery; // Use the searchQuery as the parameter for your API call
+      if (!sigla || this.courses.some(curso => curso.sigla === sigla)) {
+        return;
+      }
       fetch(`http://localhost:3000/api/curso/${sigla}`)
         .then(response => {
           if (!response.ok) {
@@ -248,6 +275,7 @@ export default {
     },
     onCourseReceived(curso: Curso) {
       this.searchQuery = '';
+      this.selectedSections[curso.sigla] = '';
       this.courses.push(curso);
       this.resetCombinations();
       if (this.combinations.length === 0) {
@@ -256,7 +284,7 @@ export default {
     },
     resetCombinations() {
       this.currentCombinationIndex = 0;
-      this.combinations = calculateCombinations(this.courses);
+      this.combinations = calculateCombinations(this.courses, this.selectedSections);
       this.updateCombination();
     },
     updateCombination() {
@@ -284,6 +312,7 @@ export default {
       if (index > -1) {
         this.courses.splice(index, 1);
       }
+      delete this.selectedSections[course.sigla];
       this.resetCombinations();
     },
   }
