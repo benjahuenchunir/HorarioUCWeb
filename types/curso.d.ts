@@ -112,7 +112,7 @@ interface SectionWithCurso {
   horario: Horario;
   id_curso: number;
   nrcs: number[];  // To store multiple section numbers
-  profesor: string;
+  profesores: string[];
   secciones: number[];
   curso: Curso;  // Reference to the original curso
 }

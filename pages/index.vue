@@ -1,44 +1,64 @@
 <template>
-  <div class="container">
+  <div class="container" id="main-container">
     <form class="flex" @submit.prevent="fetchCursoData">
       <input type="text" v-model="searchQuery" @input="makeUpperCase" placeholder="Ingresa una sigla"
-        class="search-bar" />
-      <button type="submit">Agregar</button>
+        class="flex-1 p-2 border-2 border-gray-300 rounded-l-md focus:outline-none focus:border-blue-500" />
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-md">
+        Agregar
+      </button>
     </form>
-    <div>
-      <div v-for="course in courses" :key="course.id">
-        <div class="flex justify-between">
-          <p> {{ course.sigla }} </p>
-          <p> {{ course.secciones.length }} secciones</p>
-          <button @click="removeCourse(course)">Eliminar</button>
+    <div class="p-4">
+      <div v-for="course in courses" :key="course.id" class="mb-4 last:mb-0">
+        <div class="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow">
+          <p class="font-semibold text-lg text-gray-700"> {{ course.sigla }} </p>
+          <p class="text-sm text-gray-600"> {{ course.secciones.length }} secciones</p>
+          <button @click="removeCourse(course)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+            Eliminar
+          </button>
         </div>
       </div>
     </div>
-    <div class="flex justify-between">
-      <button @click="previousCombination">←</button>
-      <p v-if="combinations.length === 0">No hay combinaciones</p>
-      <p v-else>Combinación {{ currentCombinationIndex + 1 }} de {{ combinations.length }}</p>
-      <button @click="nextCombination">→</button>
-    </div>
-    <div class="grid">
-      <!-- Empty top-left corner -->
-      <div class="grid-item time-header" style="grid-column: 1 / span 1; grid-row: 1;">&nbsp;</div>
-      <!-- Days of the week -->
-      <div class="grid-item time-header" v-for="(day, index) in days" :key="day"
-        :style="{ 'grid-column': index + 2, 'grid-row': 1 }">{{ day }}</div>
-      <!-- Time slots -->
-      <div class="grid-item time-slot" v-for="(time, index) in times" :key="time"
-        :style="{ 'grid-column': 1, 'grid-row': index + 2 }">{{ time }}</div>
-      <!-- Adjusted for 7*11 grid with headers, dynamically calculate position -->
-      <div class="grid-item" v-for="n in 70" :key="`item-${n}`" :style="calculatePosition(n)">
-        <!-- Content based on filteredItems or other logic -->
+    <div class="flex flex-col lg:flex-row gap-4 ">
+      <div class="container" id="schedule-container">
+        <div class="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow">
+          <button @click="previousCombination" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            ←
+          </button>
+          <p v-if="combinations.length === 0" class="text-gray-800">No hay combinaciones</p>
+          <p v-else class="text-gray-800">Combinación {{ currentCombinationIndex + 1 }} de {{ combinations.length }}</p>
+          <button @click="nextCombination" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            →
+          </button>
+        </div>
+        <div class="grid">
+          <!-- Empty top-left corner -->
+          <div class="grid-item time-header" style="grid-column: 1 / span 1; grid-row: 1;">&nbsp;</div>
+          <!-- Days of the week -->
+          <div class="grid-item time-header" v-for="(day, index) in days" :key="day"
+            :style="{ 'grid-column': index + 2, 'grid-row': 1 }">{{ day }}</div>
+          <!-- Time slots -->
+          <div class="time-slot" v-for="(time, index) in times" :key="time"
+            :style="{ 'grid-column': 1, 'grid-row': index + 2 }" :class="{'lunch-item': index === 4, 'grid-item': index !== 4}">{{ time }}</div>
+          <!-- Adjusted for 7*11 grid with headers, dynamically calculate position -->
+          <div v-for="n in 70" :key="`item-${n}`" :class="{'lunch-item': n >= 29 && n <= 35, 'grid-item': !(n >= 29 && n <= 35)}" :style="calculatePosition(n)">
+          </div>
+          <!-- Loop through gridCells to display the classes -->
+          <div v-for="(cell, serializedKey) in gridCells" :key="serializedKey" :title="cell.text" class="grid-item"
+            :style="{ 'grid-column': deserialize(serializedKey).x + 1, 'grid-row': deserialize(serializedKey).y + 1, backgroundColor: cell.color }">
+            {{ cell.text }}
+          </div>
+        </div>
+      </div class="container">
+      <div class="w-full">
+        <div v-for="section, index in combinations[currentCombinationIndex]" :key="index" class="mb-4 last:mb-0">
+        <div class="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow w-full h-min">
+          <p class="font-semibold text-lg text-gray-700 whitespace-pre-line"> {{ section.curso.sigla }} </p>
+          <p class="font-semibold text-lg text-gray-700 whitespace-pre-line"> {{ section.curso.nombre }} </p>
+          <p class="text-sm text-gray-600 whitespace-pre-line"> {{ section.secciones.join("\n") }}</p>
+          <p class="text-sm text-gray-600 whitespace-pre-line"> {{ section.nrcs.join("\n") }}</p>
+          <p class="text-sm text-gray-600 whitespace-pre-line"> {{ section.profesores.join("\n") }}</p>
+        </div>
       </div>
-      <!-- <div v-for="(cell, index) in gridCells" :key="index" class="grid-item" :style="{ , ...calculatePosition(index) }">
-        {{ cell.sigla }}
-      </div> -->
-      <div v-for="(cell, serializedKey) in gridCells" :key="serializedKey" class="grid-item"
-        :style="{ 'grid-column': deserialize(serializedKey).x + 1, 'grid-row': deserialize(serializedKey).y + 1, backgroundColor: cell.color }">
-        {{ cell.text }}
       </div>
     </div>
   </div>
@@ -121,12 +141,14 @@ function combineSections(cursos: Curso[]): SectionWithCurso[] {
           ...seccion,
           nrcs: [seccion.nrc],
           secciones: [seccion.seccion],
-          curso
+          curso,
+          profesores: [seccion.profesor]
         });
       } else {
         const existing = horarioMap.get(horarioKey)!;
         existing.nrcs.push(seccion.nrc);
         existing.secciones.push(seccion.seccion);
+        existing.profesores.push(seccion.profesor);
       }
     }
 
@@ -215,7 +237,7 @@ export default {
         .catch(error => console.error('Error fetching data:', error));
     },
     nextCombination() {
-      if (this.currentCombinationIndex === this.combinations.length - 1) return;
+      if (this.currentCombinationIndex >= this.combinations.length - 1) return;
       this.currentCombinationIndex++;
       this.updateCombination()
     },
@@ -227,14 +249,16 @@ export default {
     onCourseReceived(curso: Curso) {
       this.searchQuery = '';
       this.courses.push(curso);
-      this.currentCombinationIndex = 0;
-      this.combinations = calculateCombinations(this.courses);
+      this.resetCombinations();
       if (this.combinations.length === 0) {
         alert('No hay combinaciones válidas');
       }
-      this.updateCombination()
     },
-
+    resetCombinations() {
+      this.currentCombinationIndex = 0;
+      this.combinations = calculateCombinations(this.courses);
+      this.updateCombination();
+    },
     updateCombination() {
       this.gridCells = {};
       for (const section of this.combinations[this.currentCombinationIndex]) {
@@ -260,17 +284,21 @@ export default {
       if (index > -1) {
         this.courses.splice(index, 1);
       }
+      this.resetCombinations();
     },
   }
 }
 </script>
 
 <style scoped>
-.container {
-  max-width: 1000px;
-  /* Adjusted for larger grid */
-  margin: auto;
+
+#main-container {
   padding: 20px;
+}
+
+#schedule-container {
+  max-width: 52rem;
+  width: 100%;
 }
 
 .search-bar {
@@ -284,8 +312,8 @@ export default {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   /* 7 columns + 1 for time */
-  grid-template-rows: auto repeat(10, 1fr);
-  /* 1 row for days + 11 for times */
+  grid-template-rows: auto repeat(4, 1fr) 0.5fr repeat(5, 1fr);
+  /* 1 row for days, 3 regular rows, 1 smaller row for the 4th, then 6 more regular rows */
   gap: 2px;
   border: 1px solid black;
   /* Display grid lines */
@@ -296,12 +324,20 @@ export default {
   background-color: #f0f0f0;
   text-align: center;
   border: 1px solid #ddd;
-  /* Display grid lines */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lunch-item {
+  padding: 0px;
+  background-color: #afafaf;
+  text-align: center;
+  border: 1px solid #ddd;
 }
 
 .time-header,
 .time-slot {
   background-color: #e0e0e0;
-  /* Different background for headers */
 }
 </style>
