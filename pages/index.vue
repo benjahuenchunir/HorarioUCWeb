@@ -1,5 +1,5 @@
 <template>
-  <div class="container" id="main-container">
+  <div class=" flex flex-col justify-around" id="main-container">
     <form class="flex" @submit.prevent="fetchCursoData">
       <input type="text" v-model="searchQuery" @input="makeUpperCase" placeholder="Ingresa una sigla"
         class="flex-1 p-2 border-2 border-gray-300 rounded-l-md focus:outline-none focus:border-blue-500" />
@@ -55,9 +55,9 @@
           </div>
         </div>
       </div class="container">
-      <div class="w-full">
+      <div id="sections-info-container">
         <div v-for="section, index in combinations[currentCombinationIndex]" :key="index" class="mb-4 last:mb-0">
-        <div class="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow w-full h-min">
+        <div class="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow w-full">
           <p class="font-semibold text-lg text-gray-700 whitespace-pre-line"> {{ section.curso.sigla }} </p>
           <p class="font-semibold text-lg text-gray-700 whitespace-pre-line"> {{ section.curso.nombre }} </p>
           <p class="text-sm text-gray-600 whitespace-pre-line"> {{ section.secciones.join("\n") }}</p>
@@ -253,7 +253,19 @@ export default {
       fetch(`http://localhost:3000/api/curso/${sigla}`)
         .then(response => {
           if (!response.ok) {
-            throw new Error('Network response was not ok');
+            if (response.status === 404) {
+              // If the response status is 404, attempt to fetch from the scrape endpoint
+              console.log("Course not found, attempting to scrape...");
+              return fetch(`http://localhost:3000/api/scrape/${sigla}`)
+                .then(scrapeResponse => {
+                  if (!scrapeResponse.ok) {
+                    throw new Error('Scrape network response was not ok');
+                  }
+                  return scrapeResponse.json();
+                });
+            } else {
+              throw new Error('Network response was not ok');
+            }
           }
           return response.json();
         })
@@ -261,7 +273,9 @@ export default {
           console.log(data);
           this.onCourseReceived(data);
         })
-        .catch(error => console.error('Error fetching data:', error));
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
     },
     nextCombination() {
       if (this.currentCombinationIndex >= this.combinations.length - 1) return;
@@ -326,8 +340,12 @@ export default {
 }
 
 #schedule-container {
-  max-width: 52rem;
+  max-width: 64rem;
   width: 100%;
+}
+
+#sections-info-container {
+  width: 80%;
 }
 
 .search-bar {

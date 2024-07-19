@@ -10,17 +10,20 @@ export default defineEventHandler(async (event) => {
   }
 
   const client = await serverSupabaseClient<Database>(event)
-  
+
   const { data, error } = await client
 	.from('cursos')
 	.select('*, secciones(*)')
 	.eq('sigla', sigla)
   .single()
-  
+
   if (error) {
-	throw createError({ statusCode: 500, statusMessage: error.message })
+    if (error.message.includes('multiple (or no) rows returned')) {
+      throw createError({ statusCode: 404, statusMessage: 'Curso no encontrado' })
+    } else {
+      throw createError({ statusCode: 500, statusMessage: error.message })
+    }
   }
   
-  console.log(data)
   return data
 })
