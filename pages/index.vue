@@ -38,20 +38,23 @@
         </div>
         <div class="grid">
           <!-- Empty top-left corner -->
-          <div class="grid-item time-header" style="grid-column: 1 / span 1; grid-row: 1;">&nbsp;</div>
+          <div class="grid-background time-header" style="grid-column: 1 / span 1; grid-row: 1;">&nbsp;</div>
           <!-- Days of the week -->
-          <div class="grid-item time-header" v-for="(day, index) in days" :key="day"
+          <div class="grid-background time-header" v-for="(day, index) in days" :key="day"
             :style="{ 'grid-column': index + 2, 'grid-row': 1 }">{{ day }}</div>
           <!-- Time slots -->
           <div class="time-slot" v-for="(time, index) in times" :key="time"
-            :style="{ 'grid-column': 1, 'grid-row': index + 2 }" :class="{'lunch-item': index === 4, 'grid-item': index !== 4}">{{ time }}</div>
+            :style="{ 'grid-column': 1, 'grid-row': index + 2 }" :class="{'lunch-item': index === 4, 'grid-background': index !== 4}">{{ time }}</div>
           <!-- Adjusted for 7*11 grid with headers, dynamically calculate position -->
-          <div v-for="n in 70" :key="`item-${n}`" :class="{'lunch-item': n >= 29 && n <= 35, 'grid-item': !(n >= 29 && n <= 35)}" :style="calculatePosition(n)">
+          <div v-for="n in 70" :key="`item-${n}`" :class="{'lunch-item': n >= 29 && n <= 35, 'grid-background': !(n >= 29 && n <= 35)}" :style="calculatePosition(n)">
           </div>
           <!-- Loop through gridCells to display the classes -->
-          <div v-for="(cell, serializedKey) in gridCells" :key="serializedKey" :title="cell.text" class="grid-item"
-            :style="{ 'grid-column': deserialize(serializedKey).x + 1, 'grid-row': deserialize(serializedKey).y + 1, backgroundColor: cell.color }">
-            {{ cell.text }}
+          <div v-for="(cell, serializedKey) in gridCells" :key="serializedKey" class="grid-item"
+              :style="{ 'grid-column': deserialize(serializedKey).x + 1, 'grid-row': deserialize(serializedKey).y + 1 }">
+            <div v-for="(content, index) in cell" :key="index"
+                :style="{ backgroundColor: content.color }" class="cell-content" :title="content.text">
+              {{ content.text }}
+            </div>
           </div>
         </div>
       </div class="container">
@@ -69,7 +72,52 @@
     </div>
   </div>
 </template>
-<script lang="ts">
+
+<script setup lang="ts">
+
+const dayToNumber: { [key: string]: number } = {
+  L: 1,
+  M: 2,
+  W: 3,
+  J: 4,
+  V: 5,
+  S: 6,
+  D: 7,
+};
+  
+const classTypeColors: { [key: string]: string } = {
+  AYU: "#99CC99",
+  CLAS: "#FBC575",
+  LAB: "#B3D4F5",
+  TAL: "#C7C2F8",
+  PRA: "#CCCC99",
+  TES: "#B2EFEF",
+  TER: "#FFCCFF",
+  LIB: "#FF9999",
+  SUP: "#FF9999",
+};
+
+const searchQuery = useState('searchQuery', () => '')
+const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const times = generateTimes()
+const currentCombinationIndex = useState('currentCombinationIndex',() => 0)
+const courses = useCookie<Curso[]>('courses')
+courses.value = courses.value || []
+const combinations = useState<SectionWithCurso[][]>('combinations', () => [])
+let gridCells = {} as { [key: string]: [{ text: string, color: string }] }
+const selectedSections = {} as { [key: string]: number | string }
+for (const course of courses.value) {
+  selectedSections[course.sigla] = ''
+}
+if (courses.value.length > 0) {
+  resetCombinations()
+}
+
+watch(courses, (newValue, oldValue) => {
+  // This function will be called every time courses.value changes
+  // Update the cookie with the new value
+  refreshCookie('courses')
+}, { deep: true });
 
 function extractClasModules(horario: Horario): Set<string> {
   const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -181,44 +229,7 @@ function combineSections(cursos: Curso[], selectedSections: { [key: string]: num
   return combinedSections;
 }
 
-const dayToNumber: { [key: string]: number } = {
-  L: 1,
-  M: 2,
-  W: 3,
-  J: 4,
-  V: 5,
-  S: 6,
-  D: 7,
-};
-
-const classTypeColors: { [key: string]: string } = {
-  AYU: "#99CC99",
-  CLAS: "#FBC575",
-  LAB: "#B3D4F5",
-  TAL: "#C7C2F8",
-  PRA: "#CCCC99",
-  TES: "#B2EFEF",
-  TER: "#FFCCFF",
-  LIB: "#FF9999",
-  SUP: "#FF9999",
-};
-
-export default {
-  data() {
-    return {
-      searchQuery: '',
-      items: [],
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      times: this.generateTimes(),
-      currentCombinationIndex: 0,
-      courses: [] as Curso[],
-      combinations: [] as SectionWithCurso[][],
-      gridCells: {} as { [key: string]: { text: string, color: string } },
-      selectedSections: {} as { [key: string]: number | string },
-    }
-  },
-  methods: {
-    generateTimes() {
+function generateTimes() {
       let times = [];
       let time = new Date(0, 0, 0, 8, 20); // Starting at 8:20
       for (let i = 0; i < 10; i++) { // Generate 10 time slots
@@ -235,19 +246,20 @@ export default {
         }
       }
       return times;
-    },
-    calculatePosition(n: number) {
+    }
+
+function calculatePosition(n: number) {
       // Calculate row and column based on n
       const row = Math.floor((n - 1) / 7) + 2; // Adjust row to start after headers
       const column = ((n - 1) % 7) + 2; // Adjust column to start after time slots
       return { 'grid-column': column, 'grid-row': row };
-    },
-    makeUpperCase() {
-      this.searchQuery = this.searchQuery.toUpperCase();
-    },
-    fetchCursoData() {
-      const sigla = this.searchQuery; // Use the searchQuery as the parameter for your API call
-      if (!sigla || this.courses.some(curso => curso.sigla === sigla)) {
+    }
+function makeUpperCase() {
+      searchQuery.value = searchQuery.value.toUpperCase();
+    }
+function fetchCursoData() {
+      const sigla = searchQuery.value; // Use the searchQuery as the parameter for your API call
+      if (!sigla || courses.value.some(curso => curso.sigla === sigla)) {
         return;
       }
       fetch(`http://localhost:3000/api/curso/${sigla}`)
@@ -271,66 +283,68 @@ export default {
         })
         .then((data: Curso) => {
           console.log(data);
-          this.onCourseReceived(data);
+          onCourseReceived(data);
         })
         .catch(error => {
           console.error('Error fetching data:', error);
         });
-    },
-    nextCombination() {
-      if (this.currentCombinationIndex >= this.combinations.length - 1) return;
-      this.currentCombinationIndex++;
-      this.updateCombination()
-    },
-    previousCombination() {
-      if (this.currentCombinationIndex === 0) return;
-      this.currentCombinationIndex--;
-      this.updateCombination()
-    },
-    onCourseReceived(curso: Curso) {
-      this.searchQuery = '';
-      this.selectedSections[curso.sigla] = '';
-      this.courses.push(curso);
-      this.resetCombinations();
-      if (this.combinations.length === 0) {
+    }
+function nextCombination() {
+      if (currentCombinationIndex.value >= combinations.value.length - 1) return;
+      currentCombinationIndex.value++;
+      updateCombination()
+    }
+function previousCombination() {
+      if (currentCombinationIndex.value === 0) return;
+      currentCombinationIndex.value--;
+      updateCombination()
+    }
+function onCourseReceived(curso: Curso) {
+      searchQuery.value = '';
+      selectedSections[curso.sigla] = '';
+      courses.value = [...courses.value, curso];
+      resetCombinations();
+      if (combinations.value.length === 0) {
         alert('No hay combinaciones válidas');
       }
-    },
-    resetCombinations() {
-      this.currentCombinationIndex = 0;
-      this.combinations = calculateCombinations(this.courses, this.selectedSections);
-      this.updateCombination();
-    },
-    updateCombination() {
-      this.gridCells = {};
-      for (const section of this.combinations[this.currentCombinationIndex]) {
+    }
+function resetCombinations() {
+      currentCombinationIndex.value = 0;
+      combinations.value = calculateCombinations(courses.value, selectedSections);
+      updateCombination();
+    }
+function updateCombination() {
+      gridCells = {};
+      for (const section of combinations.value[currentCombinationIndex.value]) {
         Object.entries(section.horario).forEach(([classType, days]) => {
           const color = classTypeColors[classType];
           Object.entries(days).forEach(([day, modules]) => {
             modules.forEach((moduleNumber) => {
-              this.updateGridCellWithLabel(day, moduleNumber, `${section.curso.sigla}-${section.secciones.join(',')}`, color);
+              updateGridCellWithLabel(day, moduleNumber, `${section.curso.sigla}-${section.secciones.join(',')}`, color);
             });
           });
         });
       }
-    },
-    updateGridCellWithLabel(day: string, moduleNumber: number, text: string, color: string) {
-      this.gridCells[`${dayToNumber[day]},${moduleNumber}`] = { text, color };
-    },
-    deserialize(key: string): { x: number; y: number } {
+    }
+function updateGridCellWithLabel(day: string, moduleNumber: number, text: string, color: string) {
+      if (!gridCells[`${dayToNumber[day]},${moduleNumber}`]) {
+        gridCells[`${dayToNumber[day]},${moduleNumber}`] = [{ text, color }];
+      } else {
+        gridCells[`${dayToNumber[day]},${moduleNumber}`].push({ text, color });
+      }
+    }
+function deserialize(key: string): { x: number; y: number } {
       const [x, y] = key.split(',').map(Number);
       return { x, y: y > 4 ? y + 1 : y };
-    },
-    removeCourse(course: Curso) {
-      const index = this.courses.indexOf(course);
+    }
+function removeCourse(course: Curso) {
+      const index = courses.value.indexOf(course);
       if (index > -1) {
-        this.courses.splice(index, 1);
+        courses.value.splice(index, 1);
       }
-      delete this.selectedSections[course.sigla];
-      this.resetCombinations();
-    },
-  }
-}
+      delete selectedSections[course.sigla];
+      resetCombinations();
+    }
 </script>
 
 <style scoped>
@@ -359,14 +373,14 @@ export default {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   /* 7 columns + 1 for time */
-  grid-template-rows: auto repeat(4, 1fr) 0.5fr repeat(5, 1fr);
-  /* 1 row for days, 3 regular rows, 1 smaller row for the 4th, then 6 more regular rows */
+  grid-template-rows: auto repeat(9, auto);
+  /* 1 row for days, then 9 more rows sized based on content */
   gap: 2px;
   border: 1px solid black;
   /* Display grid lines */
 }
 
-.grid-item {
+.grid-background {
   padding: 10px;
   background-color: #f0f0f0;
   text-align: center;
@@ -375,6 +389,19 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.grid-item {
+  border: 1px solid #ddd;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cell-content {
+  padding: 10px;
+}
+
 
 .lunch-item {
   padding: 0px;
